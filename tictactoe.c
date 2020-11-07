@@ -1,3 +1,29 @@
+MAIN CODE:
+#include <device.h>
+#include "TFT.h" 
+
+int main()
+{	
+	SPI_Start();
+	TFT_Start();
+	AMux_Start(); 
+	ADC_Start();  
+	
+	
+	Draw_H_Line(0, Y_BOUNDARY_1, MAX_X+1, GREEN);
+	Draw_H_Line(0, Y_BOUNDARY_2, MAX_X+1, GREEN);
+	Draw_V_Line(X_BOUNDARY_1, 0, MAX_Y+1, YELLOW);
+	Draw_V_Line(X_BOUNDARY_2, 0, MAX_Y+1, YELLOW);
+	
+	   for(;;)
+    {
+		Touch_Location();		
+	}
+}
+
+TFT CODE:
+
+
 #include "TFT.h"
 #include "YP.h"
 #include "YN.h"
@@ -11,160 +37,49 @@
 #include "ADC.h"
 #include "SPI_SPI_UART.h"
 
-/* Variables needed to detect the position */
+
+
 uint16 Line, ADC_Resultx, ADC_Resulty,Touch_X, Touch_Y,count=0,ADC_Detect=0;
 
-/* Variables used to define box positions */
 uint8 box1=1,box2=1,box3=1,box4=1,box5=1,box6=1,box7=1,box8=1,box9=1;
 
-/* Variables to store ADC values and the number of times finger has been pressed */
 uint8 xlsb, xmsb, ylsb, ymsb, maincount; 
 
-/* Variables to compute the winner */
-uint8 winx1=0,winx2=0,winx3=0,winx4=0,winx5=0,winx6=0,winx7=0,winx8=0,winx9=0;
-uint8 wino1=0,wino2=0,wino3=0,wino4=0,wino5=0,wino6=0,wino7=0,wino8=0,wino9=0;
+uint8 winx1=0,winx2=0,winx3=0,winx4=0,winx5=0,winx6=0,winx7=0,winx8=0, winx9=0;
+uint8 wino1=0,wino2=0,wino3=0,wino4=0,wino5=0,wino6=0,wino7=0,wino8=0, wino9=0;
 
 void TFT_Start(void)
 {
-    CS_HIGH;
-	DC_HIGH;
-
-	CyDelay(500);
-	Send_Cmd(0x01);
-	CyDelay(200);
 	
-	Send_Cmd(0xCB);
-    Send_Data(0x39);
-    Send_Data(0x2C);
-    Send_Data(0X00);
-    Send_Data(0X34);
-    Send_Data(0X02);
-
-    Send_Cmd(0xCF);
-    Send_Data(0x00);
-    Send_Data(0xC1);
-    Send_Data(0X30);
+	
+	
+			
+    Send_Cmd(0x01);
     
-
-    Send_Cmd(0xE8);
-    Send_Data(0x85);
-    Send_Data(0x00);
-    Send_Data(0x78);
-
-    Send_Cmd(0xEA);
-    Send_Data(0x64);
-    Send_Data(0x03);
-    Send_Data(0x12);
-    Send_Data(0x81);
-   
-
-    Send_Cmd(0xF7);
-    Send_Data(0x20);
-
-    Send_Cmd(0xEA);
-    Send_Data(0x00);
-    Send_Data(0x00);
-
-    Send_Cmd(0xC0);                                                      /* Power control                */
-    Send_Data(0x1B);                                                   /* VRH[5:0]                     */
-
-    Send_Cmd(0xC1);                                                      /* Power control                */
-    Send_Data(0x10);                                                   /* SAP[2:0];BT[3:0]             */
-
-    Send_Cmd(0xC5);                                                      /* VCM control                  */
-    Send_Data(0x3F);
-    Send_Data(0x3C);
-
-    Send_Cmd(0xC7);                                                      /* VCM control2                 */
-    Send_Data(0XB7);
-
-    Send_Cmd(0x36);                                                      /* Memory Access Control        */
-    Send_Data(0x08);
-
-    Send_Cmd(0x3A);
-    Send_Data(0x55);
-
-    Send_Cmd(0xB1);
-    Send_Data(0x00);
-    Send_Data(0x1B);
-
-    Send_Cmd(0xB6);                                                      /* Display Function Control     */
-    Send_Data(0x0A);
-    Send_Data(0xA2);
-
-
-    Send_Cmd(0xF2);                                                      /* 3Gamma Function Disable      */
-    Send_Data(0x00);
-
-    Send_Cmd(0x26);                                                      /* Gamma curve selected         */
-    Send_Data(0x01);
-
-    Send_Cmd(0xE0);                                                      /* Set Gamma                    */
-    Send_Data(0x0F);
-    Send_Data(0x2A);
-    Send_Data(0x28);
-    Send_Data(0x08);
-    Send_Data(0x0E);
-    Send_Data(0x08);
-    Send_Data(0x54);
-    Send_Data(0XA9);
-    Send_Data(0x43);
-    Send_Data(0x0A);
-    Send_Data(0x0F);
-    Send_Data(0x00);
-    Send_Data(0x00);
-    Send_Data(0x00);
-    Send_Data(0x00);
-
-    Send_Cmd(0XE1);                                                      /* Set Gamma                    */
-    Send_Data(0x00);
-    Send_Data(0x15);
-    Send_Data(0x17);
-    Send_Data(0x07);
-    Send_Data(0x11);
-    Send_Data(0x06);
-    Send_Data(0x2B);
-    Send_Data(0x56);
-    Send_Data(0x3C);
-    Send_Data(0x05);
-    Send_Data(0x10);
-    Send_Data(0x0F);
-    Send_Data(0x3F);
-    Send_Data(0x3F);
-    Send_Data(0x0F);
-	
-	Send_Cmd(0x11);                                                      /* Exit Sleep                   */
-    CyDelay(120);
-    Send_Cmd(0x29);   
-  
     Fill_Screen();
-    
-    }
-
-
-
+}
 
 void Fill_Screen(void)
 {
 	uint32 index;
 	
-	Set_Col(0, 160);
-	Set_Page(0, 128);
+	Set_Col(0, 239);
+	Set_Page(0, 319);
 	Send_Cmd(0x2C);
 	
 	DC_HIGH;
 	CS_LOW;
 	
-	for(index = 0; index < (160* 128); index++)
+	for(index = 0; index < (240 * 320); index++)
 	{
-       SPI_Transfer(0);
+		SPI_Transfer(0);
 		SPI_Transfer(0);
 	}
+	
 	CS_HIGH;
 }
 
 
-/* The function Draw_Line(x1, y1, x2,y2, color) draws a line between the point (x1,y1) and (x2,y2) with the defined color */
 
 void Draw_Line( uint16 x1, uint16 y1, uint16 x2, uint16 y2, uint16 Color )
 {
@@ -198,7 +113,7 @@ void Draw_Line( uint16 x1, uint16 y1, uint16 x2, uint16 y2, uint16 Color )
 		dyabs = -dy;
 		sdy = -1;
 	}
-	if ( dxabs >= dyabs ) /* the line is more horizontal than vertical */
+	if ( dxabs >= dyabs ) 
 	{
 		slope = ( float ) dy / ( float ) dx;
 		for ( i = 0; i != dx; i += sdx )
@@ -208,7 +123,7 @@ void Draw_Line( uint16 x1, uint16 y1, uint16 x2, uint16 y2, uint16 Color )
 			Set_Pixel( px, py, Color );
 		}
 	}
-	else /* the line is more vertical than horizontal */
+	else
 	{
 		slope = ( float ) dx / ( float ) dy;
 		for ( i = 0; i != dy; i += sdy )
@@ -220,8 +135,6 @@ void Draw_Line( uint16 x1, uint16 y1, uint16 x2, uint16 y2, uint16 Color )
 	}
 }
 
-/* The function Draw_H_Line(x,y,length, color) draws a horizontal line from (x,y) to (x+length,y) with the defined colour */
-
 void Draw_H_Line(uint16 Pos_X, uint16 Pos_Y, uint16 Length, uint16 Color)
 {
 	uint16 index;
@@ -230,8 +143,8 @@ void Draw_H_Line(uint16 Pos_X, uint16 Pos_Y, uint16 Length, uint16 Color)
 	Set_Page(Pos_Y, Pos_Y);
 	Send_Cmd(0x2C);
 	
-	DC_HIGH;
-	CS_LOW;
+	DC_HIGH;  
+	CS_LOW; 
 	
 	for(index = 0; index < Length; index++)
 	{
@@ -242,7 +155,6 @@ void Draw_H_Line(uint16 Pos_X, uint16 Pos_Y, uint16 Length, uint16 Color)
 	CS_HIGH;
 }
 
-/* The function Draw_V_Line(x,y,length, color) draws a vertical line from (x,y) to (x,y+length) with the defined colour */
 
 void Draw_V_Line(uint16 Pos_X, uint16 Pos_Y, uint16 Length, uint16 Color)
 {
@@ -262,8 +174,6 @@ void Draw_V_Line(uint16 Pos_X, uint16 Pos_Y, uint16 Length, uint16 Color)
 	
 	CS_HIGH;
 }
-
-/* The function Draw_Circle(x,y,r, color) draws a circle of radius "r" with (x,y) as the centre with the defined colour */
 
 void Draw_Circle(uint16 Pos_X, uint16 Pos_Y, uint16 Radius, uint16 Color)
 {
@@ -297,9 +207,7 @@ void Draw_Circle(uint16 Pos_X, uint16 Pos_Y, uint16 Radius, uint16 Color)
 		}	
 	}
 	while(X <= 0);
-} 
-
-/* The function Set_Col(start,end) defines the boundaries for setting a particular column */
+}
 void Set_Col(uint16 Start_Col, uint16 End_Col)
 {
 	Send_Cmd(0x2A);
@@ -307,7 +215,6 @@ void Set_Col(uint16 Start_Col, uint16 End_Col)
 	Send_Data16(End_Col);
 }
 
-/* The function Set_Page(start,end) defines the boundaries for setting a particular page */
 void Set_Page(uint16 Start_Page, uint16 End_Page)
 {
 	Send_Cmd(0x2B);
@@ -315,7 +222,6 @@ void Set_Page(uint16 Start_Page, uint16 End_Page)
 	Send_Data16(End_Page);
 }
 
-/* The function Goto_XY(X,Y) provides access to row X and column Y */
 void Goto_XY(uint16 Pos_X, uint16 Pos_Y)
 {
 	Set_Col(Pos_X, Pos_X);
@@ -323,15 +229,12 @@ void Goto_XY(uint16 Pos_X, uint16 Pos_Y)
 	Send_Cmd(0x2C);
 }
 
-/* The function Set_Pixel(uint16 Pos_X, uint16 Pos_Y, uint16 Color) highlights the pixel at row "Pos_X" and column "Pos_Y" with "Color" */
 void Set_Pixel(uint16 Pos_X, uint16 Pos_Y, uint16 Color)
 {
 	Goto_XY(Pos_X, Pos_Y);
 	Send_Data16(Color);
 }
 
-
-/* The function Send_Data16(uint16) transfers a 16 bit data to the controller in LCD module through SPI */
 
 void Send_Data16(uint16 dat)
 {
@@ -349,7 +252,6 @@ void Send_Data16(uint16 dat)
 	CS_HIGH;
 }
 
-/* The function Send_Data(uint8) transfers a data to the controller in LCD module through SPI */
 
 void Send_Data(uint8 dat)
 {
@@ -360,9 +262,6 @@ void Send_Data(uint8 dat)
 	
 	CS_HIGH;
 }
-
-/* The function Send_Cmd(uint8) transfers a command to the controller in LCD module through SPI */
-
 void Send_Cmd(uint8 cmd)
 {
 	DC_LOW;
@@ -373,8 +272,6 @@ void Send_Cmd(uint8 cmd)
 	CS_HIGH;
 }
 
-/* The function SPI_Transfer(uint8) transfers the data to the controller in LCD module through SPI */
-
 void SPI_Transfer(uint8 data_tx)
 {	
 	SPI_SpiUartWriteTxData((uint32)data_tx);
@@ -382,15 +279,10 @@ void SPI_Transfer(uint8 data_tx)
 	CyDelayUs(1);
 }
 
-/* The function TouchDetect() checks if a finger is present or not */
+
 void TouchDetect(void)
-{	XP_SetDriveMode(XP_DM_STRONG);
-	CyDelayUs(5);
-	XP_SetDriveMode(XP_DM_RES_UP);
-	XN_SetDriveMode(XN_DM_ALG_HIZ);
-	YP_SetDriveMode(YP_DM_ALG_HIZ);
-	YN_SetDriveMode(YN_DM_STRONG);
-	AMux_Select(1);
+{	
+      AMux_Select(1);
 	
 	while(1)
 	{
@@ -398,48 +290,27 @@ void TouchDetect(void)
 		ADC_IsEndConversion(ADC_WAIT_FOR_RESULT);
 		ADC_StopConvert();
 		ADC_Detect = ADC_GetResult16(0);
-		if(ADC_Detect<=0x600)
-		break;
+		
 	}
 }
 
-/* The function Touch_Location() determines the position where the finger is pressed. */
 
 void Touch_Location(void)
 {
 	TouchDetect();
 	
-	XP_SetDriveMode(XP_DM_STRONG);
-	XN_SetDriveMode(XN_DM_STRONG);
+	
 	
 	
 	XP_Write(1);
 	XN_Write(0);
 	
-	YP_SetDriveMode(YP_DM_ALG_HIZ);
-	YN_SetDriveMode(YN_DM_ALG_HIZ);
-	
-	AMux_Select(0);
-	
-	ADC_StartConvert();
-	ADC_IsEndConversion(ADC_WAIT_FOR_RESULT);
-	ADC_Resultx = ADC_GetResult16(0);
 	
 	
 	ADC_StopConvert();
 	
-	
-	
-	YP_SetDriveMode(YP_DM_STRONG);
-	YN_SetDriveMode(YN_DM_STRONG);
-	
-	
 	YP_Write(1);
 	YN_Write(0);
-	
-	XP_SetDriveMode(XP_DM_ALG_HIZ);
-	XN_SetDriveMode(XN_DM_ALG_HIZ);
-	
 	
 	
 	AMux_Select(1);
@@ -457,7 +328,6 @@ void Touch_Location(void)
 	DisplayPattern();
 }
 
-/* The function DisplayPattern() checks the position where the finger is placed and draws an X or an O in that particular box */
 
 void DisplayPattern()
 {
@@ -652,9 +522,6 @@ void DisplayPattern()
 	}
 }
 
-/*
-The function Check_Winner() makes the LCD display the winner of the game.
-*/
 void Check_Winner()
 {
 	if((winx1==1&&winx2==1&&winx3==1)||(winx1==1&&winx4==1&&winx7==1)||(winx1==1&&winx5==1&&winx9==1)||(winx4==1&&winx5==1&&winx6==1)||(winx7==1&&winx8==1&&winx9==1)||(winx3==1&&winx6==1&&winx9==1)||(winx2==1&&winx5==1&&winx8==1)||(winx3==1&&winx5==1&&winx7==1))
@@ -767,4 +634,7 @@ void Check_Winner()
 		}
 	}
 }
+
+
+
 
